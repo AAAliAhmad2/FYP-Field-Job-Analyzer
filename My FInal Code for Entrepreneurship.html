@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FYP Field & Job Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles to enhance the look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #c9e9ff 100%); /* Soft, modern blue gradient */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem; /* Increased responsive padding */
+        }
+        .container {
+            max-width: 850px; /* Slightly wider container */
+            width: 100%;
+            padding: 3rem; /* Generous padding */
+            background-color: #ffffff;
+            border-radius: 2rem; /* Even more rounded corners */
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18); /* Deeper, softer shadow */
+            animation: fadeInScale 0.8s ease-out forwards; /* Enhanced fade-in and scale */
+            border: 1px solid #e0f2f7; /* Subtle outer border */
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .header {
+            margin-bottom: 2.5rem; /* More space below header */
+        }
+        .title {
+            font-size: 2.8rem; /* Larger title */
+            font-weight: 800; /* Extra bold */
+            color: #1a202c; /* Darker text for title */
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+        .subtitle {
+            font-size: 1.15rem; /* Slightly larger subtitle */
+            color: #4a5568; /* Softer gray for subtitle */
+            line-height: 1.6;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem; /* More space between input and button */
+            margin-top: 2.5rem; /* More space above input group */
+        }
+        @media (min-width: 640px) {
+            .input-group {
+                flex-direction: row;
+            }
+        }
+        .input-group input {
+            flex-grow: 1;
+            border-radius: 1rem; /* Very rounded input */
+            padding: 1rem 1.25rem; /* More padding */
+            font-size: 1.15rem;
+            border: 2px solid #cbd5e0; /* Slightly more prominent border */
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08); /* Subtle inner shadow */
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #4299e1; /* Brighter blue on focus */
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.3); /* More pronounced glow */
+        }
+        .analyze-button {
+            background: linear-gradient(to right, #4299e1, #3182ce); /* Gradient button */
+            color: white;
+            font-weight: 700; /* Bold */
+            padding: 1rem 2rem; /* More padding */
+            border-radius: 1rem; /* Rounded button */
+            font-size: 1.15rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4); /* Button shadow */
+        }
+        .analyze-button:hover {
+            transform: translateY(-3px) scale(1.02); /* Lift and slight scale on hover */
+            box-shadow: 0 8px 20px rgba(66, 153, 225, 0.6); /* More intense shadow on hover */
+            background: linear-gradient(to right, #3182ce, #2b6cb0); /* Darker gradient on hover */
+        }
+        .output-section {
+            margin-top: 2rem; /* More space above output sections */
+            padding: 1.8rem; /* More padding */
+            border-radius: 1.25rem; /* Rounded corners */
+            border: 1px solid;
+            min-height: 120px; /* Taller min-height */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            text-align: left;
+            font-weight: 500;
+            line-height: 1.7; /* Improved line spacing */
+            transition: all 0.4s ease-in-out; /* Smoother transitions */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow for outputs */
+        }
+        .analysis-output {
+            background-color: #e6f7ff; /* Lighter blue */
+            border-color: #90cdf4; /* Soft blue border */
+            color: #2c5282; /* Darker blue text */
+        }
+        .job-output {
+            background-color: #f0fff4; /* Lighter green */
+            border-color: #9ae6b4; /* Soft green border */
+            color: #2f855a; /* Darker green text */
+        }
+        .output-loading {
+            background-color: #fffbeb; /* Soft yellow for loading */
+            border-color: #fbd38d;
+            color: #d69e2e;
+        }
+        .output-error {
+            background-color: #fed7d7; /* Soft red for error */
+            border-color: #f56565;
+            color: #c53030;
+        }
+        .output-text {
+            font-size: 1.05rem; /* Slightly larger text in outputs */
+            color: inherit; /* Inherit color from parent output div */
+        }
+        .job-list {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            margin-top: 1rem; /* Space between heading and list */
+        }
+        .job-list li {
+            margin-bottom: 0.75rem; /* More space between list items */
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Finer separator */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .job-list li:last-child {
+            border-bottom: none;
+        }
+        .job-list a {
+            color: #3182ce; /* Link blue */
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-word;
+            flex-grow: 1;
+            font-size: 1.1rem; /* Larger link text */
+            transition: color 0.2s ease;
+        }
+        .job-list a:hover {
+            text-decoration: underline;
+            color: #2b6cb0; /* Darker blue on hover */
+        }
+        .job-list .source-title {
+            font-size: 0.85em; /* Slightly larger source title */
+            color: #718096; /* Softer gray for source */
+            white-space: nowrap;
+        }
+        .output-icon {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 2.5rem; /* Much larger icon */
+            opacity: 0.1; /* Very subtle icon */
+        }
+        .analysis-output .output-icon { color: #2c5282; }
+        .job-output .output-icon { color: #2f855a; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container rounded-xl">
+        <header class="header text-center">
+            <h1 class="title">
+                <i class="fas fa-flask text-blue-500 mr-4"></i>FYP Field & Job Analyzer
+            </h1>
+            <p class="subtitle">
+                Uncover the primary field(s) of your Final Year Project and discover relevant career paths and job opportunities on top job boards.
+            </p>
+        </header>
+
+        <label for="fypTitle" class="block text-gray-800 text-lg font-semibold mb-3">Enter your Final Year Project Title:</label>
+        <div class="input-group">
+            <input type="text" id="fypTitle" placeholder="e.g., Development of a Smart Home Automation System using IoT"
+                   class="shadow-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+            <button onclick="analyzeFYP()"
+                    class="analyze-button flex items-center justify-center">
+                <i class="fas fa-chart-line mr-2"></i> Analyze Project
+            </button>
+        </div>
+
+        <div id="fieldOutput" class="output-section analysis-output rounded-xl">
+            <i class="fas fa-lightbulb output-icon"></i>
+            <p class="output-text">Field analysis will appear here.</p>
+        </div>
+
+        <div id="jobOutput" class="output-section job-output rounded-xl">
+            <i class="fas fa-briefcase output-icon"></i>
+            <p class="output-text">Job suggestions will appear here.</p>
+        </div>
+    </div>
+
+    <script>
+        // **WARNING: FOR DEMONSTRATION ONLY. DO NOT EXPOSE YOUR API KEY IN PRODUCTION.**
+        // The API key will be provided by the Canvas environment at runtime.
+        const GEMINI_API_KEY = "AIzaSyCr-nr3tMhfoGkRhDY8Vo42QrICfVnrGtA"; // Your provided API key
+        const MODEL_NAME = "gemini-2.0-flash"; // Using gemini-2.0-flash as requested.
+
+        /**
+         * Helper function to update the output div's content and styling.
+         * @param {HTMLElement} element - The div element to update.
+         * @param {string} message - The text message to display.
+         * @param {string} type - 'loading', 'error', or 'success' to apply appropriate styling.
+         * @param {Array<Object>} [jobLinks=[]] - Optional array of job link objects ({title, url, sourceTitle}) for job output.
+         */
+        function updateOutput(element, message, type, jobLinks = []) {
+            element.classList.remove('output-loading', 'output-error', 'analysis-output', 'job-output');
+            element.innerHTML = ''; // Clear previous content
+
+            // Add the icon back for success/default states
+            let iconClass = '';
+            if (element.id === 'fieldOutput') {
+                iconClass = 'fas fa-lightbulb';
+            } else if (element.id === 'jobOutput') {
+                iconClass = 'fas fa-briefcase';
+            }
+            if (iconClass) {
+                const iconElement = document.createElement('i');
+                // Corrected: Split the iconClass string into individual class names
+                iconElement.classList.add(...iconClass.split(' '), 'output-icon');
+                element.appendChild(iconElement);
+            }
+
+            if (type === 'loading') {
+                const p = document.createElement('p');
+                p.classList.add('output-text');
+                p.textContent = message;
+                element.appendChild(p);
+                element.classList.add('output-loading');
+            } else if (type === 'error') {
+                const p = document.createElement('p');
+                p.classList.add('output-text');
+                p.textContent = message;
+                element.appendChild(p);
+                element.classList.add('output-error');
+            } else {
+                // Determine original class based on element ID
+                if (element.id === 'fieldOutput') {
+                    const p = document.createElement('p');
+                    p.classList.add('output-text');
+                    p.textContent = message;
+                    element.appendChild(p);
+                    element.classList.add('analysis-output');
+                } else if (element.id === 'jobOutput') {
+                    element.classList.add('job-output');
+                    if (jobLinks.length > 0) {
+                        const heading = document.createElement('p');
+                        heading.classList.add('output-text', 'font-semibold', 'mb-2');
+                        heading.textContent = message;
+                        element.appendChild(heading);
+
+                        const ul = document.createElement('ul');
+                        ul.classList.add('job-list');
+                        jobLinks.forEach(job => {
+                            const li = document.createElement('li');
+                            const titleSpan = document.createElement('span');
+                            titleSpan.textContent = job.title;
+                            
+                            const a = document.createElement('a');
+                            a.href = job.url;
+                            a.target = "_blank"; // Open link in new tab
+                            a.rel = "noopener noreferrer"; // Security best practice for target="_blank"
+                            a.appendChild(titleSpan);
+                            
+                            li.appendChild(a);
+                            if (job.sourceTitle) {
+                                const span = document.createElement('span');
+                                span.classList.add('source-title');
+                                span.textContent = `(${job.sourceTitle})`;
+                                li.appendChild(span);
+                            }
+                            ul.appendChild(li);
+                        });
+                        element.appendChild(ul);
+                    } else {
+                        const p = document.createElement('p');
+                        p.classList.add('output-text');
+                        p.textContent = message;
+                        element.appendChild(p);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Analyzes the FYP title using the Gemini API to determine field(s) and then searches for jobs.
+         */
+        async function analyzeFYP() {
+            const fypTitleInput = document.getElementById('fypTitle');
+            const fieldOutputDiv = document.getElementById('fieldOutput');
+            const jobOutputDiv = document.getElementById('jobOutput');
+            const fypTitle = fypTitleInput.value.trim();
+
+            if (!fypTitle) {
+                updateOutput(fieldOutputDiv, "Please enter an FYP title to analyze.", 'error');
+                updateOutput(jobOutputDiv, "No job suggestions without a title.", 'error');
+                return;
+            }
+
+            // Reset output styling and show loading messages for both sections
+            updateOutput(fieldOutputDiv, "Analyzing field(s)...", 'loading');
+            updateOutput(jobOutputDiv, "Waiting for field analysis to search for jobs...", 'loading');
+
+            let detectedFields = '';
+
+            try {
+                // --- First API Call: Determine Field(s) of Study ---
+                const fieldPrompt = `Analyze the following Final Year Project (FYP) title and determine its primary field(s) of study. If it falls into multiple fields, list them all, separated by commas. Provide a concise answer, directly stating the field(s) without any introductory phrases like "Fields:".
+
+Examples:
+- "Development of a Smart Home Automation System using IoT" -> Internet of Things, Home Automation, Embedded Systems
+- "Machine Learning for Anomaly Detection in Network Traffic" -> Machine Learning, Network Security, Data Science
+- "Design and Analysis of a Novel Algorithm for Image Compression" -> Image Processing, Algorithm Design, Data Compression
+- "Blockchain-based Secure Voting System" -> Blockchain, Cybersecurity, Distributed Systems
+- "Impact of Climate Change on Agricultural Yields in Pakistan" -> Environmental Science, Agriculture, Data Analysis
+
+FYP Title: "${fypTitle}"`;
+
+                const fieldPayload = {
+                    contents: [{ parts: [{ text: fieldPrompt }] }],
+                    generationConfig: {
+                        temperature: 0.2, // Lower temperature for more focused and less creative answers
+                        maxOutputTokens: 100 // Limit output length to keep it concise
+                    }
+                };
+
+                const fieldApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const fieldResponse = await fetch(fieldApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fieldPayload)
+                });
+
+                const fieldResult = await fieldResponse.json();
+
+                if (fieldResult.candidates && fieldResult.candidates.length > 0 &&
+                    fieldResult.candidates[0].content && fieldResult.candidates[0].content.parts &&
+                    fieldResult.candidates[0].content.parts.length > 0) {
+                    detectedFields = fieldResult.candidates[0].content.parts[0].text.trim();
+                    updateOutput(fieldOutputDiv, `Detected Field(s): ${detectedFields}`, 'success');
+                } else if (fieldResult.error) {
+                    updateOutput(fieldOutputDiv, `Error analyzing field: ${fieldResult.error.message}`, 'error');
+                    updateOutput(jobOutputDiv, "Cannot search for jobs due to field analysis error.", 'error');
+                    console.error('Gemini API Field Analysis Error:', fieldResult.error);
+                    return; // Stop execution if field analysis fails
+                } else {
+                    updateOutput(fieldOutputDiv, "Could not determine field(s). Unexpected response from API.", 'error');
+                    updateOutput(jobOutputDiv, "Cannot search for jobs due to field analysis error.", 'error');
+                    console.warn('Unexpected Gemini API Field Analysis response:', fieldResult);
+                    return; // Stop execution if field analysis fails
+                }
+
+                // --- Second API Call: Generate Direct Job Board Search URLs based on Detected Field(s) ---
+                updateOutput(jobOutputDiv, "Generating job board search links...", 'loading');
+
+                const jobBoardSearchPrompt = `Given the field(s) of study: "${detectedFields}", generate 3-5 relevant job search URLs for popular job boards like LinkedIn, Indeed, and Glassdoor. For each URL, provide a descriptive title and the corresponding direct search URL. Ensure the URLs are correctly formatted for searching on those specific platforms. Prioritize highly relevant and common search terms.
+
+Example:
+[
+  {"title": "IoT Developer Jobs on LinkedIn", "url": "https://www.linkedin.com/jobs/search/?keywords=IoT%20Developer"},
+  {"title": "Smart Home Automation Jobs on Indeed", "url": "https://www.indeed.com/jobs?q=Smart%20Home%20Automation"},
+  {"title": "Embedded Systems Engineer Jobs on Glassdoor", "url": "https://www.glassdoor.com/Job/embedded-systems-engineer-jobs-SRCH_KO0,25.htm"}
+]
+`;
+
+                const jobBoardSearchPayload = {
+                    contents: [{ parts: [{ text: jobBoardSearchPrompt }] }],
+                    generationConfig: {
+                        temperature: 0.5,
+                        maxOutputTokens: 500,
+                        responseMimeType: "application/json", // Request JSON output
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "title": { "type": "STRING" },
+                                    "url": { "type": "STRING" }
+                                },
+                                "required": ["title", "url"]
+                            }
+                        }
+                    }
+                };
+
+                const jobBoardSearchApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const jobBoardSearchResponse = await fetch(jobBoardSearchApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jobBoardSearchPayload)
+                });
+
+                const jobBoardSearchResult = await jobBoardSearchResponse.json();
+
+                if (jobBoardSearchResult.candidates && jobBoardSearchResult.candidates.length > 0 &&
+                    jobBoardSearchResult.candidates[0].content && jobBoardSearchResult.candidates[0].content.parts &&
+                    jobBoardSearchResult.candidates[0].content.parts.length > 0) {
+                    try {
+                        const jsonString = jobBoardSearchResult.candidates[0].content.parts[0].text;
+                        const jobLinks = JSON.parse(jsonString);
+                        if (Array.isArray(jobLinks) && jobLinks.every(item => item.title && item.url)) {
+                             // Add a dummy sourceTitle to indicate the platform
+                            const formattedJobLinks = jobLinks.map(link => {
+                                let source = 'Job Board'; // Default
+                                if (link.url.includes('linkedin.com')) source = 'LinkedIn';
+                                else if (link.url.includes('indeed.com')) source = 'Indeed';
+                                else if (link.url.includes('glassdoor.com')) source = 'Glassdoor';
+                                return {
+                                    title: link.title,
+                                    url: link.url,
+                                    sourceTitle: source
+                                };
+                            });
+                            updateOutput(jobOutputDiv, `Click on the links below to search for jobs related to "${detectedFields}" on specific platforms:`, 'success', formattedJobLinks);
+                        } else {
+                            throw new Error("Invalid JSON structure received for job links.");
+                        }
+                    } catch (parseError) {
+                        updateOutput(jobOutputDiv, `Error parsing job search links: ${parseError.message}. Raw: ${jobBoardSearchResult.candidates[0].content.parts[0].text}`, 'error');
+                        console.error('JSON Parse Error for Job Links:', parseError, jobBoardSearchResult.candidates[0].content.parts[0].text);
+                    }
+                } else if (jobBoardSearchResult.error) {
+                    updateOutput(jobOutputDiv, `Error generating job search links: ${jobBoardSearchResult.error.message}`, 'error');
+                    console.error('Gemini API Job Search Link Generation Error:', jobBoardSearchResult.error);
+                } else {
+                    updateOutput(jobOutputDiv, "Could not generate job search links. Unexpected response from API.", 'error');
+                    console.warn('Unexpected Gemini API Job Search Link Generation response:', jobBoardSearchResult);
+                }
+
+            } catch (error) {
+                // Handle network or other fetch-related errors for any API call
+                updateOutput(fieldOutputDiv, `Failed to connect. Error: ${error.message}`, 'error');
+                updateOutput(jobOutputDiv, `Failed to connect or generate job search links. Error: ${error.message}`, 'error');
+                console.error('Overall Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
